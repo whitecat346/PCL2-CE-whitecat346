@@ -2,10 +2,10 @@ Imports System.Collections.ObjectModel
 Imports System.Collections.Specialized
 Imports PCL.Core.App
 Imports PCL.Core.Link
-Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Lobby.LobbyInfoProvider
 Imports PCL.Core.Link.Scaffolding.Client.Models
+Imports PCL.Core.Link.Scaffolding.EasyTier
 
 Public Class PageLinkLobby
 
@@ -104,12 +104,12 @@ Public Class PageLinkLobby
     Private Sub OnServerStartedHandler()
         Log("Received server started event.")
         RunInUi(Sub()
-            LabFinishId.Text = LobbyService.CurrentLobbyCode
-            StackPlayerList.Children.Clear()
-            For Each player As PlayerProfile In LobbyService.Players
-                StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
-            Next
-        End Sub)
+                    LabFinishId.Text = LobbyService.CurrentLobbyCode
+                    StackPlayerList.Children.Clear()
+                    For Each player As PlayerProfile In LobbyService.Players
+                        StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
+                    Next
+                End Sub)
     End Sub
 
     Private Async Sub OnServerShuttedDownHandler()
@@ -143,40 +143,37 @@ Public Class PageLinkLobby
         MyMsgBox("由于你关闭了联机中的 MC 实例，大厅已自动解散。", "大厅已解散")
     End Sub
 
-    
+
     Private Sub OnPlayersChanged(sender As Object, e As NotifyCollectionChangedEventArgs)
-        Log("接收到玩家列表改变事件")
         RunInUi(Sub()
-            Select Case e.Action
-                Case NotifyCollectionChangedAction.Add
-                    For Each player As PlayerProfile In e.NewItems
-                        StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
-                    Next
+                    Select Case e.Action
+                        Case NotifyCollectionChangedAction.Add
+                            For Each player As PlayerProfile In e.NewItems
+                                StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
+                            Next
 
-                Case NotifyCollectionChangedAction.Remove
-                    For Each player As PlayerProfile In e.OldItems
-                        Dim itemToRemove = StackPlayerList.Children.OfType(Of MyListItem)().
-                                FirstOrDefault(Function(item) item.Tag.MachineId = player.MachineId)
-                        If itemToRemove IsNot Nothing Then
-                            StackPlayerList.Children.Remove(itemToRemove)
-                        End If
-                    Next
+                        Case NotifyCollectionChangedAction.Remove
+                            For Each player As PlayerProfile In e.OldItems
+                                Dim itemToRemove = StackPlayerList.Children.OfType(Of MyListItem)().
+                                        FirstOrDefault(Function(item) item.Tag.MachineId = player.MachineId)
+                                If itemToRemove IsNot Nothing Then
+                                    StackPlayerList.Children.Remove(itemToRemove)
+                                End If
+                            Next
 
-                Case Else
-                    StackPlayerList.Children.Clear()
-                    For Each player As PlayerProfile In LobbyService.Players
-                        StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
-                    Next
-            End Select
+                        Case Else
+                            StackPlayerList.Children.Clear()
+                            For Each player As PlayerProfile In LobbyService.Players
+                                StackPlayerList.Children.Add(PlayerInfoItem(player, AddressOf PlayerInfoClick))
+                            Next
+                    End Select
 
-            LabFinishQuality.Text = "已连接"
-            CardPlayerList.Title = $"大厅成员列表（共 {LobbyService.Players.Count} 人）"
-        End Sub)
+                    LabFinishQuality.Text = "已连接"
+                    CardPlayerList.Title = $"大厅成员列表（共 {LobbyService.Players.Count} 人）"
+                End Sub)
     End Sub
 
     Private Sub OnDiscoveredWorldsChanged(sender As Object, e As NotifyCollectionChangedEventArgs)
-        Log("Found new world.")
-
         RunInUi(Sub()
                     If e.Action = NotifyCollectionChangedAction.Reset Then
                         ComboWorldList.Items.Clear()
@@ -358,12 +355,12 @@ Public Class PageLinkLobby
 
                     '中继服务器
                     Dim relays As JArray = jObj("relays")
-                    ETRelay.RelayList = New List(Of ETRelay)
+                    EasyTierRelayData.RelayList = New List(Of EasyTierRelayData)
                     For Each relay In relays
-                        ETRelay.RelayList.Add(New ETRelay With {
+                        EasyTierRelayData.RelayList.Add(New EasyTierRelayData With {
                             .Name = relay("name").ToString(),
                             .Url = relay("url").ToString(),
-                            .Type = If(relay("type") = "official", ETRelayType.Selfhosted, ETRelayType.Community)
+                            .Type = If(relay("type") = "official", EasyTierRelayType.Selfhosted, EasyTierRelayType.Community)
                         })
                     Next
                 Catch ex As Exception
@@ -439,7 +436,7 @@ Public Class PageLinkLobby
     Private Sub BtnRefresh_Click(sender As Object, e As EventArgs) Handles BtnRefresh.Click
         Dim lobby = LobbyService.DiscoverWorldAsync()
     End Sub
-    
+
     '创建大厅
     Private Async Sub BtnCreate_Click(sender As Object, e As EventArgs) Handles BtnCreate.Click
         If ComboWorldList.SelectedItem Is Nothing Then
@@ -455,9 +452,6 @@ Public Class PageLinkLobby
         End If
 
         Dim port = CType(ComboWorldList.SelectedItem.Tag, Integer)
-        Log("[Link] 创建大厅，端口：" & port)
-
-
         Dim username = GetUsername()
 
         RunInUi(Sub()
@@ -492,8 +486,6 @@ Public Class PageLinkLobby
     '加入大厅
     Private Async Sub BtnJoin_Click(sender As Object, e As EventArgs) Handles BtnJoin.Click
         If Not LobbyPrecheck() Then Exit Sub
-
-        Log("Start to join lobby.")
 
         Dim id = TextJoinLobbyId.Text
         Dim username = GetUsername()
@@ -533,10 +525,9 @@ Public Class PageLinkLobby
     '承接状态切换的 UI 改变
     Private Sub OnLoadStateChanged(loader As LoaderBase, newState As LoadState, oldState As LoadState)
     End Sub
-    Private Shared _loadStep As String = "准备初始化"
+
     Private Shared Sub SetLoadDesc(intro As String, [step] As String)
         Log("连接步骤：" & intro)
-        _loadStep = [step]
         RunInUiWait(Sub()
                         If FrmLinkLobby Is Nothing OrElse Not FrmLinkLobby.LabLoadDesc.IsLoaded Then Exit Sub
                         FrmLinkLobby.LabLoadDesc.Text = intro

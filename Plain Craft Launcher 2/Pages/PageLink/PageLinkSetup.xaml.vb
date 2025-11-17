@@ -1,8 +1,8 @@
-﻿Imports PCL.Core.Link.EasyTier
-Imports PCL.Core.Link.Natayark.NatayarkProfileManager
-Imports PCL.Core.Link.Lobby.LobbyInfoProvider
-Imports PCL.Core.Link
 Imports PCL.Core.App
+Imports PCL.Core.Link
+Imports PCL.Core.Link.Lobby.LobbyInfoProvider
+Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Link.Scaffolding.EasyTier
 
 Class PageLinkSetup
 
@@ -52,13 +52,13 @@ Class PageLinkSetup
         Do While Not (PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Finished OrElse PageLinkLobby.LobbyAnnouncementLoader.State = LoadState.Failed)
             Thread.Sleep(500)
         Loop
-        If ETRelay.RelayList.Count > 0 Then
+        If EasyTierRelayData.RelayList.Count > 0 Then
             TextRelays.Text = ""
-            For Each Relay In ETRelay.RelayList
+            For Each Relay In EasyTierRelayData.RelayList
                 Select Case Relay.Type
-                    Case ETRelayType.Community
+                    Case EasyTierRelayType.Community
                         TextRelays.Text += "[社区] "
-                    Case ETRelayType.Selfhosted
+                    Case EasyTierRelayType.Selfhosted
                         TextRelays.Text += "[自有] "
                     Case Else 'ETRelayType.Custom
                         TextRelays.Text += "[自定义] "

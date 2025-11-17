@@ -1,9 +1,9 @@
 Imports System.Runtime.InteropServices
 Imports PCL.Core.IO
 Imports PCL.Core.Link
-Imports PCL.Core.Link.EasyTier
 Imports PCL.Core.Link.Lobby
 Imports PCL.Core.Link.Natayark.NatayarkProfileManager
+Imports PCL.Core.Link.Scaffolding.EasyTier
 Imports PCL.Core.Utils.OS
 
 Public Module ModLink
@@ -167,18 +167,18 @@ Public Module ModLink
 #Region "EasyTier"
     Public DlEasyTierLoader As LoaderCombo(Of JObject) = Nothing
     Public Function DownloadEasyTier()
-        Dim dlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{ETInfoProvider.ETVersion}.zip"
+        Dim dlTargetPath As String = PathTemp + $"EasyTier\EasyTier-{EasyTierMetadata.CurrentEasyTierVersion}.zip"
         RunInNewThread(Sub()
                            Try
                                '构造步骤加载器
                                Dim loaders As New List(Of LoaderBase)
                                '下载
                                Dim address As New List(Of String)
-                               address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
-                               address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{ETInfoProvider.ETVersion}.zip")
+                               address.Add($"https://staticassets.naids.com/resources/pclce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{EasyTierMetadata.CurrentEasyTierVersion}.zip")
+                               address.Add($"https://s3.pysio.online/pcl2-ce/static/easytier/easytier-windows-{If(IsArm64System, "arm64", "x86_64")}-v{EasyTierMetadata.CurrentEasyTierVersion}.zip")
 
                                loaders.Add(New LoaderDownload("下载 EasyTier", New List(Of NetFile) From {New NetFile(address.ToArray, dlTargetPath, New FileChecker(MinSize:=1024 * 64))}) With {.ProgressWeight = 15})
-                               loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(dlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", ETInfoProvider.ETVersion))) With {.Block = True})
+                               loaders.Add(New LoaderTask(Of Integer, Integer)("解压文件", Sub() ExtractFile(dlTargetPath, IO.Path.Combine(FileService.LocalDataPath, "EasyTier", EasyTierMetadata.CurrentEasyTierVersion))) With {.Block = True})
                                loaders.Add(New LoaderTask(Of Integer, Integer)("清理缓存与冗余组件", Sub()
                                                                                                 File.Delete(dlTargetPath)
                                                                                                 CleanupEasyTierCache()
@@ -201,7 +201,7 @@ Public Module ModLink
         Dim subDirs As String() = Directory.GetDirectories(IO.Path.Combine(FileService.LocalDataPath, "EasyTier"))
         For Each folderPath As String In subDirs
             Dim name As String = IO.Path.GetFileName(folderPath)
-            If Not name.Equals(ETInfoProvider.ETVersion) Then
+            If Not name.Equals(EasyTierMetadata.CurrentEasyTierVersion) Then
                 Try
                     Directory.Delete(folderPath, True)
                 Catch ex As Exception
@@ -260,11 +260,12 @@ Public Module ModLink
             Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", HintType.Critical)
             Return False
         End If
-        If ETController.Precheck() = 1 Then
-            Hint("正在下载联机依赖组件，请稍后...")
-            DownloadEasyTier()
-            Return False
-        End If
+        ' we have replaced EasyTier precheck with download check in LobbyService
+        'If ETController.Precheck() = 1 Then
+        '    Hint("正在下载联机依赖组件，请稍后...")
+        '    DownloadEasyTier()
+        '    Return False
+        'End If
         If DlEasyTierLoader IsNot Nothing Then
             If DlEasyTierLoader.State = LoadState.Loading Then
                 Hint("EasyTier 尚未下载完成，请等待其下载完成后再试！")

@@ -180,7 +180,7 @@ public partial class PageLaunchLeft
 
             ModBase.RunInUi(() =>
             {
-                ModInstanceList.McMcInstanceSelected = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
+                GameInstanceManager.CurrentSelectedInstance = instance; // 绕这一圈是为了避免 McInstanceCheck 触发第二次实例改变
                 isLoadFinished = true;
                 RefreshButtonsUI();
                 RefreshPage(false); // 有可能选择的版本变化了，需要重新刷新
@@ -226,7 +226,7 @@ public partial class PageLaunchLeft
         {
             case LaunchButtonAction.Launch:
                 {
-                    if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
+                    if (File.Exists(GameInstanceManager.CurrentSelectedInstance.PathInstance + ".pclignore"))
                     {
                         ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), ModMain.HintType.Critical);
                         return;
@@ -254,7 +254,7 @@ public partial class PageLaunchLeft
         {
             currentState = 0;
         }
-        else if (ModInstanceList.McMcInstanceSelected is null)
+        else if (GameInstanceManager.CurrentSelectedInstance is null)
         {
             if (Config.Preference.Hide.PageDownload && !PageSetupUI.HiddenForceShow)
                 currentState = 1;
@@ -268,10 +268,10 @@ public partial class PageLaunchLeft
 
         // 更新状态
         if (currentState == btnLaunchState &&
-            ((ModInstanceList.McMcInstanceSelected is null ? "" : ModInstanceList.McMcInstanceSelected.PathInstance) ?? "") ==
+            ((GameInstanceManager.CurrentSelectedInstance is null ? "" : GameInstanceManager.CurrentSelectedInstance.PathInstance) ?? "") ==
             ((btnLaunchVersion is null ? "" : btnLaunchVersion.PathInstance) ?? ""))
             goto ExitRefresh;
-        btnLaunchVersion = ModInstanceList.McMcInstanceSelected;
+        btnLaunchVersion = GameInstanceManager.CurrentSelectedInstance;
         btnLaunchState = currentState;
         switch (currentState)
         {
@@ -311,14 +311,14 @@ public partial class PageLaunchLeft
             case 3:
                 {
                     _launchButtonAction = LaunchButtonAction.Launch;
-                    ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
+                    ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + GameInstanceManager.CurrentSelectedInstance.PathInstance);
                     ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
                     ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
                     if (ModProfile.selectedProfile is not null)
                         BtnLaunch.IsEnabled = true;
                     else
                         BtnLaunch.IsEnabled = false;
-                    ModMain.frmLaunchLeft.LabVersion.Text = ModInstanceList.McMcInstanceSelected.Name;
+                    ModMain.frmLaunchLeft.LabVersion.Text = GameInstanceManager.CurrentSelectedInstance.Name;
                     break;
                 }
                 // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
@@ -361,9 +361,9 @@ public partial class PageLaunchLeft
     {
         if (ModLaunch.mcLaunchLoader.State == ModBase.LoadState.Loading)
             return;
-        ModInstanceList.McMcInstanceSelected.Load();
-        PageInstanceLeft.McInstance = ModInstanceList.McMcInstanceSelected;
-        if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
+        GameInstanceManager.CurrentSelectedInstance.Load();
+        PageInstanceLeft.McInstance = GameInstanceManager.CurrentSelectedInstance;
+        if (File.Exists(GameInstanceManager.CurrentSelectedInstance.PathInstance + ".pclignore"))
         {
             ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotSetup"), ModMain.HintType.Critical);
             return;
@@ -571,7 +571,7 @@ public partial class PageLaunchLeft
         }
 
         // 初始化页面
-        LabLaunchingName.Text = ModInstanceList.McMcInstanceSelected.Name;
+        LabLaunchingName.Text = GameInstanceManager.CurrentSelectedInstance.Name;
         LabLaunchingStage.Text = Lang.Text("Common.Action.Initialize");
         LabLaunchingTitle.Text = ModLaunch.currentLaunchOptions?.SaveBatch is null
             ? Lang.Text("Launch.Status.Title.Launching")

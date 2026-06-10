@@ -166,12 +166,12 @@ public partial class PageDownloadCompDetail
             if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
             {
                 defaultFolder = cachedFolder.GetOrDefault(file.Type,
-                    ModInstanceList.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
+                    GameInstanceManager.CurrentSelectedInstance?.PathIndie ?? ModBase.exePath);
                 ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
             }
-            else if (ModInstanceList.McMcInstanceSelected is not null && isVersionSuitable(ModInstanceList.McMcInstanceSelected))
+            else if (GameInstanceManager.CurrentSelectedInstance is not null && isVersionSuitable(GameInstanceManager.CurrentSelectedInstance))
             {
-                defaultFolder = $"{ModInstanceList.McMcInstanceSelected.PathIndie}{subFolder}";
+                defaultFolder = $"{GameInstanceManager.CurrentSelectedInstance.PathIndie}{subFolder}";
                 Directory.CreateDirectory(defaultFolder);
                 ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{defaultFolder}");
             }
@@ -317,13 +317,13 @@ public partial class PageDownloadCompDetail
                     if (cachedFolder.ContainsKey(file.Type) && !string.IsNullOrEmpty(cachedFolder[file.Type]))
                     {
                         defaultFolder = cachedFolder.GetOrDefault(file.Type,
-                            ModInstanceList.McMcInstanceSelected?.PathIndie ?? ModBase.exePath);
+                            GameInstanceManager.CurrentSelectedInstance?.PathIndie ?? ModBase.exePath);
                         ModBase.Log($"[Comp] 使用上次下载时的文件夹作为默认下载位置：{defaultFolder}");
                     }
-                    else if (ModInstanceList.McMcInstanceSelected is not null &&
-                             isVersionSuitable(ModInstanceList.McMcInstanceSelected))
+                    else if (GameInstanceManager.CurrentSelectedInstance is not null &&
+                             isVersionSuitable(GameInstanceManager.CurrentSelectedInstance))
                     {
-                        defaultFolder = $"{ModInstanceList.McMcInstanceSelected.PathIndie}{subFolder}";
+                        defaultFolder = $"{GameInstanceManager.CurrentSelectedInstance.PathIndie}{subFolder}";
                         Directory.CreateDirectory(defaultFolder);
                         ModBase.Log($"[Comp] 使用当前实例作为默认下载位置：{defaultFolder}");
                     }
@@ -396,9 +396,9 @@ public partial class PageDownloadCompDetail
                         {
                             McInstance? targetInstance = null;
                             var knownInstances = new List<McInstance>();
-                            if (ModInstanceList.McMcInstanceSelected is not null)
+                            if (GameInstanceManager.CurrentSelectedInstance is not null)
                             {
-                                knownInstances.Add(ModInstanceList.McMcInstanceSelected);
+                                knownInstances.Add(GameInstanceManager.CurrentSelectedInstance);
                             }
 
                             knownInstances.AddRange(ModInstanceList.mcInstanceList.Values.SelectMany(list => list)

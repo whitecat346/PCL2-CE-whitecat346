@@ -393,8 +393,8 @@ public partial class PageInstanceOverall
             // 刷新与提示
             ModMain.Hint(Lang.Text("Instance.Overall.Name.RenameSuccess"), ModMain.HintType.Finish);
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
-            if (ModInstanceList.McMcInstanceSelected is not null &&
-                ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
+            if (GameInstanceManager.CurrentSelectedInstance is not null &&
+                GameInstanceManager.CurrentSelectedInstance.Equals(PageInstanceLeft.McInstance))
                 ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "Version", newName);
             Reload();
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,

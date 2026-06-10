@@ -1229,21 +1229,21 @@ public static class ModMain
         text = text.Replace("{java}", replacer(ModLaunch.mcLaunchJavaSelected?.Installation.JavaFolder));
         text = text.Replace("{minecraft}", replacer(GameFolderManager.CurrentFolder.Location));
 
-        if (ModInstanceList.McMcInstanceSelected is not null)
+        if (GameInstanceManager.CurrentSelectedInstance is not null)
         {
-            text = text.Replace("{version_path}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
-            text = text.Replace("{verpath}", replacer(ModInstanceList.McMcInstanceSelected.PathInstance));
-            text = text.Replace("{version_indie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
-            text = text.Replace("{verindie}", replacer(ModInstanceList.McMcInstanceSelected.PathIndie));
-            text = text.Replace("{name}", replacer(ModInstanceList.McMcInstanceSelected.Name));
+            text = text.Replace("{version_path}", replacer(GameInstanceManager.CurrentSelectedInstance.PathInstance));
+            text = text.Replace("{verpath}", replacer(GameInstanceManager.CurrentSelectedInstance.PathInstance));
+            text = text.Replace("{version_indie}", replacer(GameInstanceManager.CurrentSelectedInstance.PathIndie));
+            text = text.Replace("{verindie}", replacer(GameInstanceManager.CurrentSelectedInstance.PathIndie));
+            text = text.Replace("{name}", replacer(GameInstanceManager.CurrentSelectedInstance.Name));
 
-            if (new[] { "unknown", "old", "pending" }.Contains(ModInstanceList.McMcInstanceSelected.Info.VanillaName))
+            if (new[] { "unknown", "old", "pending" }.Contains((string)GameInstanceManager.CurrentSelectedInstance.Info.VanillaName))
             {
-                text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Name));
+                text = text.Replace("{version}", replacer(GameInstanceManager.CurrentSelectedInstance.Name));
             }
             else
             {
-                text = text.Replace("{version}", replacer(ModInstanceList.McMcInstanceSelected.Info.VanillaName));
+                text = text.Replace("{version}", replacer(GameInstanceManager.CurrentSelectedInstance.Info.VanillaName));
             }
         }
         else
@@ -1288,7 +1288,7 @@ public static class ModMain
         text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m =>
         {
             if (ConfigService.TryGetConfigItemNoType(m.Groups[1].Value, out var item) && item.Source != ConfigSource.SharedEncrypt)
-                return replacer(item.GetValueNoType(ModInstanceList.McMcInstanceSelected?.PathInstance)?.ToString() ?? "");
+                return replacer(item.GetValueNoType(GameInstanceManager.CurrentSelectedInstance?.PathInstance)?.ToString() ?? "");
             return replacer("");
         });
         text = ModBase.RegexReplaceEach(text, @"\{varible:([^:\}]+)(?::([^\}]+))?\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value, m.Groups[2].Value)));

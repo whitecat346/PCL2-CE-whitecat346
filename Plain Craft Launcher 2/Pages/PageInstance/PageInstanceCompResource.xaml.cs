@@ -1025,7 +1025,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 3. Determine target instance
-        var targetInstance = ModInstanceList.McMcInstanceSelected;
+        var targetInstance = GameInstanceManager.CurrentSelectedInstance;
         if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup) targetInstance = PageInstanceLeft.McInstance;
 
         // 4. Validate instance status
@@ -1122,7 +1122,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         // 获取并检查目标实例
-        var targetInstance = ModInstanceList.McMcInstanceSelected;
+        var targetInstance = GameInstanceManager.CurrentSelectedInstance;
         if (ModMain.frmMain.pageCurrent == FormMain.PageType.InstanceSetup)
             targetInstance = PageInstanceLeft.McInstance;
 

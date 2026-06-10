@@ -467,8 +467,8 @@ public static class ModLibrary
         var mesaLoaderWindowsTargetFile =
             Path.Combine(ModBase.pathPure, "mesa-loader-windows", ModLaunch.mesaLoaderWindowsVersion, "Loader.jar");
         var renderer = -1;
-        if (ModInstanceList.McMcInstanceSelected is not null)
-            renderer = Config.Instance.Renderer[ModInstanceList.McMcInstanceSelected?.PathInstance] - 1;
+        if (GameInstanceManager.CurrentSelectedInstance is not null)
+            renderer = Config.Instance.Renderer[GameInstanceManager.CurrentSelectedInstance?.PathInstance] - 1;
         if (renderer == -1) renderer = Config.Launch.Renderer;
 
         if (renderer != 0 && !File.Exists(mesaLoaderWindowsTargetFile))

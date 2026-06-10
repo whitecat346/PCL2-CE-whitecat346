@@ -502,8 +502,8 @@ public partial class PageSelectRight
         if (new McInstance(instance.PathInstance).Check())
         {
             // 正常实例
-            ModInstanceList.McMcInstanceSelected = instance;
-            States.Game.SelectedInstance = ModInstanceList.McMcInstanceSelected.Name;
+            GameInstanceManager.CurrentSelectedInstance = instance;
+            States.Game.SelectedInstance = GameInstanceManager.CurrentSelectedInstance.Name;
             ModMain.frmMain.PageBack();
         }
         else
@@ -573,10 +573,10 @@ public partial class PageSelectRight
                     card.Title = card.Title.Replace(Lang.Number(parent.Children.Count - 1, "N0"),
                         Lang.Number(parent.Children.Count - 2, "N0")); // 有一个占位符
                     parent.Children.Remove(item);
-                    if (ModInstanceList.McMcInstanceSelected is not null && (mcInstance.PathInstance ?? "") ==
-                        (ModInstanceList.McMcInstanceSelected.PathInstance ?? ""))
+                    if (GameInstanceManager.CurrentSelectedInstance is not null && (mcInstance.PathInstance ?? "") ==
+                        (GameInstanceManager.CurrentSelectedInstance.PathInstance ?? ""))
                         // 删除当前实例就更改选择
-                        ModInstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
+                        GameInstanceManager.CurrentSelectedInstance = (McInstance)((MyListItem)parent.Children[0]).Tag;
                     ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                         ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }

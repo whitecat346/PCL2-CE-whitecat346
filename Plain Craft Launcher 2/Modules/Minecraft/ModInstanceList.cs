@@ -25,12 +25,12 @@ public static class ModInstanceList
     /// </summary>
     public static McInstance McMcInstanceSelected
     {
-        get => field;
+        get => GameInstanceManager.CurrentSelectedInstance;
         set
         {
             if (ReferenceEquals(_McInstanceSelected_mcInstanceSelectedLast, value))
                 return;
-            field = value; // 由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
+            GameInstanceManager.CurrentSelectedInstance = value; // 由于有可能是 Nothing，导致无法初始化，才得这样弄一圈
             _McInstanceSelected_mcInstanceSelectedLast = value;
             if (value is null)
                 return;
@@ -43,6 +43,11 @@ public static class ModInstanceList
     ///     当前按卡片分类的所有版本列表。
     /// </summary>
     public static Dictionary<McInstanceCardType, List<PCL.McInstance>> mcInstanceList = new();
+
+    /// <summary>
+    ///     当前实例列表的 UI 层投影。
+    /// </summary>
+    public static Dictionary<McInstanceCardType, List<GameInstanceUi>> mcInstanceUiList = new();
 
     #endregion
 
@@ -72,6 +77,7 @@ public static class ModInstanceList
         {
             // 初始化
             mcInstanceList = new Dictionary<McInstanceCardType, List<PCL.McInstance>>();
+            mcInstanceUiList = new Dictionary<McInstanceCardType, List<GameInstanceUi>>();
             var versionsPath = Path.Combine(path, "versions");
             var folderList = new List<string>();
 
@@ -92,6 +98,7 @@ public static class ModInstanceList
             {
                 ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", "");
                 McMcInstanceSelected = null;
+                RefreshMcInstanceUiList();
                 States.Game.SelectedInstance = "";
                 ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
                 return;
@@ -123,6 +130,8 @@ public static class ModInstanceList
                 ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", folderListCheck.ToString());
                 mcInstanceList = InitMcInstanceListWithoutCache(path);
             }
+
+            RefreshMcInstanceUiList();
 
             _isFirstMcInstanceListLoad = false;
 
@@ -156,6 +165,7 @@ public static class ModInstanceList
             else
             {
                 McMcInstanceSelected = null;
+                RefreshMcInstanceUiList();
                 States.Game.SelectedInstance = "";
                 ModBase.Log("[Minecraft] 未找到可用 Minecraft 实例");
             }
@@ -173,6 +183,13 @@ public static class ModInstanceList
             ModBase.WriteIni(Path.Combine(path, "PCL.ini"), "InstanceCache", ""); // 要求下次重新加载
             ModBase.Log(ex, Lang.Text("Select.Instance.Error.ListLoad"), ModBase.LogLevel.Feedback);
         }
+    }
+
+    private static void RefreshMcInstanceUiList()
+    {
+        mcInstanceUiList = mcInstanceList.ToDictionary(
+            pair => pair.Key,
+            pair => pair.Value.Select(GameInstanceUi.FromLegacy).ToList());
     }
 
     // 获取实例列表

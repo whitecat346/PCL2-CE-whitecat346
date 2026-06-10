@@ -1043,6 +1043,61 @@ public class McInstance
         return (info + modLoaderInfo).Replace("_", "-");
     }
 
+    public GameInstance ToGameInstance() =>
+        new()
+        {
+            Path = PathInstance,
+            Name = Name,
+            State = state,
+            CardType = (int)displayType,
+            IsStarred = IsStar,
+            VanillaName = Info.VanillaName,
+            VanillaVersion = Info.vanilla?.ToString() ?? "",
+            Drop = Info.Drop,
+            Logo = Logo,
+            Description = Desc,
+            ReleaseTime = releaseTime,
+            IndiePath = PathIndie,
+            LegacyInstance = this,
+            IsLoaded = IsLoaded,
+            Info = Info,
+            IsHmclFormatJson = IsHmclFormatJson,
+            InheritInstanceName = this.InheritInstanceName
+        };
+
+    public static implicit operator GameInstance?(McInstance? instance) => instance?.ToGameInstance();
+
+    public static implicit operator McInstance?(GameInstance? instance)
+    {
+        if (instance is null)
+            return null;
+        if (instance.LegacyInstance is McInstance legacy)
+            return legacy;
+
+        var result = new McInstance(string.IsNullOrEmpty(instance.PathInstance) ? instance.Name : instance.PathInstance)
+        {
+            Desc = instance.Desc,
+            displayType = instance.displayType,
+            IsLoaded = instance.IsLoaded,
+            IsStar = instance.IsStar,
+            Logo = instance.Logo,
+            releaseTime = instance.releaseTime,
+            state = instance.state
+        };
+
+        try
+        {
+            if (instance.Info is McInstanceInfo info)
+                result.Info = info;
+        }
+        catch
+        {
+            // The Core instance may only contain cache-level metadata.
+        }
+
+        return result;
+    }
+
     // 运算符支持
     public override bool Equals(object obj)
     {

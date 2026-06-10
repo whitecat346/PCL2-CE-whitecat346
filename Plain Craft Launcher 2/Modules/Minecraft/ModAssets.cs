@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using PCL;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Folder;
 using PCL.Core.Utils;
 using PCL.Network;
 
@@ -35,7 +36,7 @@ namespace PCL
                     // 下一个实例
                     if (string.IsNullOrEmpty(mcInstance.InheritInstanceName))
                         break;
-                    mcInstance = new McInstance(Path.Combine(ModFolder.mcFolderSelected, "versions", mcInstance.InheritInstanceName));
+                    mcInstance = new McInstance(Path.Combine(GameFolderManager.CurrentFolder.Location, "versions", mcInstance.InheritInstanceName));
                 }
             }
             catch
@@ -79,7 +80,7 @@ namespace PCL
                     if (mcInstance.JsonObject["assets"] is not null) return mcInstance.JsonObject["assets"].ToString();
                     if (string.IsNullOrEmpty(mcInstance.InheritInstanceName))
                         break;
-                    mcInstance = new McInstance(Path.Combine(ModFolder.mcFolderSelected, "versions", mcInstance.InheritInstanceName));
+                    mcInstance = new McInstance(Path.Combine(GameFolderManager.CurrentFolder.Location, "versions", mcInstance.InheritInstanceName));
                 }
             }
             catch (Exception ex)
@@ -138,12 +139,12 @@ namespace PCL
             try
             {
                 // 初始化
-                if (!File.Exists($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"))
+                if (!File.Exists($@"{GameFolderManager.CurrentFolder.Location}assets\indexes\{indexName}.json"))
                     throw new FileNotFoundException(Lang.Text("Minecraft.Error.AssetIndexNotFound"),
-                        Path.Combine(ModFolder.mcFolderSelected, "assets", "indexes", indexName + ".json"));
+                        Path.Combine(GameFolderManager.CurrentFolder.Location, "assets", "indexes", indexName + ".json"));
                 var result = new List<McAssetsToken>();
                 var json = (JsonObject)ModBase.GetJson(
-                    ModBase.ReadFile($@"{ModFolder.mcFolderSelected}assets\indexes\{indexName}.json"));
+                    ModBase.ReadFile($@"{GameFolderManager.CurrentFolder.Location}assets\indexes\{indexName}.json"));
 
                 // 读取列表
                 foreach (var file in json["objects"].AsObject())
@@ -155,11 +156,11 @@ namespace PCL
                         localPath = Path.Combine(mcInstance.PathIndie, "resources", file.Key.Replace("/", @"\"));
                     else if (json["virtual"] is not null && json["virtual"].ToObject<bool>())
                         // Virtual
-                        localPath = Path.Combine(ModFolder.mcFolderSelected, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
+                        localPath = Path.Combine(GameFolderManager.CurrentFolder.Location, "assets", "virtual", "legacy", file.Key.Replace("/", @"\"));
                     else
                     {
                         // 正常
-                        localPath = Path.Combine(ModFolder.mcFolderSelected, "assets", "objects", McAssetsHashPrefix(hash), hash);
+                        localPath = Path.Combine(GameFolderManager.CurrentFolder.Location, "assets", "objects", McAssetsHashPrefix(hash), hash);
                     }
                     result.Add(new McAssetsToken
                     {

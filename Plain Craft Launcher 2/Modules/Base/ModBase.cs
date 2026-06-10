@@ -1,3 +1,13 @@
+using Microsoft.VisualBasic;
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.IO;
+using PCL.Core.Logging;
+using PCL.Core.Minecraft.Folder;
+using PCL.Core.Utils;
+using PCL.Core.Utils.Codecs;
+using PCL.Core.Utils.Hash;
+using PCL.Core.Utils.OS;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.ComponentModel;
@@ -18,19 +28,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using System.Xaml;
 using System.Xml.Linq;
-using Microsoft.VisualBasic;
-using Microsoft.Win32;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using PCL.Core.App;
-using PCL.Core.App.Localization;
-using PCL.Core.IO;
-using PCL.Core.Logging;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Codecs;
-using PCL.Core.Utils.Hash;
-using PCL.Core.Utils.OS;
-using PCL.Core.Utils.Secret;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -585,7 +582,7 @@ public static class ModBase
     public static MyColor MathRound(MyColor col, int w = 0)
     {
         return new MyColor
-            { a = Math.Round(col.a, w), r = Math.Round(col.r, w), g = Math.Round(col.g, w), b = Math.Round(col.b, w) };
+        { a = Math.Round(col.a, w), r = Math.Round(col.r, w), g = Math.Round(col.g, w), b = Math.Round(col.b, w) };
     }
 
     /// <summary>
@@ -956,14 +953,14 @@ public static class ModBase
             {
                 writer.Write(text);
             }
-            else
-            {
-                // 直接写入字节
-                var bytes = encoding is null ? new UTF8Encoding(false).GetBytes(text) : encoding.GetBytes(text);
-                var tempPath = filePath + ".pcltmp." + Guid.NewGuid().ToString("N");
-                File.WriteAllBytes(tempPath, bytes);
-                File.Move(tempPath, filePath, true);
-            }
+        else
+        {
+            // 直接写入字节
+            var bytes = encoding is null ? new UTF8Encoding(false).GetBytes(text) : encoding.GetBytes(text);
+            var tempPath = filePath + ".pcltmp." + Guid.NewGuid().ToString("N");
+            File.WriteAllBytes(tempPath, bytes);
+            File.Move(tempPath, filePath, true);
+        }
     }
 
     /// <summary>
@@ -1058,7 +1055,7 @@ public static class ModBase
     public static string GetFileMD5(string filePath)
     {
         var retry = false;
-        Re: ;
+    Re:;
 
         try
         {
@@ -1089,7 +1086,7 @@ public static class ModBase
     public static string GetFileSHA512(string filePath)
     {
         var retry = false;
-        Re: ;
+    Re:;
 
         try
         {
@@ -1122,7 +1119,7 @@ public static class ModBase
     public static string GetFileSHA256(string filePath)
     {
         var retry = false;
-        Re: ;
+    Re:;
 
         try
         {
@@ -1155,7 +1152,7 @@ public static class ModBase
     public static string GetFileSHA1(string filePath)
     {
         var retry = false;
-        Re: ;
+    Re:;
 
         try
         {
@@ -1445,7 +1442,7 @@ public static class ModBase
         foreach (var filePath in files)
         {
             var retriedFile = false;
-            RetryFile: ;
+        RetryFile:;
 
             try
             {
@@ -1472,7 +1469,7 @@ public static class ModBase
         foreach (var str in Directory.GetDirectories(path))
             DeleteDirectory(str, ignoreIssue);
         var retriedDir = false;
-        RetryDir: ;
+    RetryDir:;
 
         try
         {
@@ -1895,16 +1892,16 @@ public static class ModBase
                 case '*':
                 case '?':
                 case '#':
-                {
-                    sb.Append('[').Append(c).Append(']');
-                    break;
-                }
+                    {
+                        sb.Append('[').Append(c).Append(']');
+                        break;
+                    }
 
                 default:
-                {
-                    sb.Append(c);
-                    break;
-                }
+                    {
+                        sb.Append(c);
+                        break;
+                    }
             }
 
         return sb.ToString();
@@ -1934,7 +1931,7 @@ public static class ModBase
 
         return regexSearchRet;
     }
-    
+
     /// <summary>
     /// 搜索字符串中的所有正则匹配项。
     /// </summary>
@@ -1958,7 +1955,7 @@ public static class ModBase
             return new List<string>();
         }
     }
-    
+
     /// <summary>
     ///     获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
     /// </summary>
@@ -2469,7 +2466,7 @@ public static class ModBase
                 if (isEqual(arr.ElementAtOrDefault(i), arr.ElementAtOrDefault(ii)))
                     goto NextElement;
             resultArray.Add(arr.ElementAtOrDefault(i));
-            NextElement: ;
+        NextElement:;
         }
 
         return resultArray;
@@ -2623,7 +2620,8 @@ public static class ModBase
             {
                 Log(ex, name + "：线程执行失败", LogLevel.Feedback);
             }
-        }) { Name = name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = priority };
+        })
+        { Name = name ?? "Runtime New Invoke " + GetUuid() + "#", Priority = priority };
         th.Start();
         return th;
     }
@@ -3048,24 +3046,24 @@ public static class ModBase
             {
                 case HorizontalAlignment.Left:
                 case HorizontalAlignment.Stretch:
-                {
-                    control.Margin = new Thickness(control.Margin.Left + newValue, control.Margin.Top,
-                        control.Margin.Right, control.Margin.Bottom);
-                    break;
-                }
+                    {
+                        control.Margin = new Thickness(control.Margin.Left + newValue, control.Margin.Top,
+                            control.Margin.Right, control.Margin.Bottom);
+                        break;
+                    }
                 case HorizontalAlignment.Right:
-                {
-                    // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top,
-                        control.Margin.Right - newValue, control.Margin.Bottom);
-                    break;
-                }
+                    {
+                        // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
+                        control.Margin = new Thickness(control.Margin.Left, control.Margin.Top,
+                            control.Margin.Right - newValue, control.Margin.Bottom);
+                        break;
+                    }
 
                 default:
-                {
-                    DebugAssert(false);
-                    break;
-                }
+                    {
+                        DebugAssert(false);
+                        break;
+                    }
             }
     }
 
@@ -3095,24 +3093,24 @@ public static class ModBase
             switch (control.VerticalAlignment)
             {
                 case VerticalAlignment.Top:
-                {
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top + newValue,
-                        control.Margin.Right, control.Margin.Bottom);
-                    break;
-                }
+                    {
+                        control.Margin = new Thickness(control.Margin.Left, control.Margin.Top + newValue,
+                            control.Margin.Right, control.Margin.Bottom);
+                        break;
+                    }
                 case VerticalAlignment.Bottom:
-                {
-                    // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
-                    control.Margin = new Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right,
-                        control.Margin.Bottom - newValue);
-                    break;
-                }
+                    {
+                        // control.Margin = New Thickness(control.Margin.Left, control.Margin.Top, CType(control.Parent, Object).ActualWidth - control.ActualWidth - newValue, control.Margin.Bottom)
+                        control.Margin = new Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right,
+                            control.Margin.Bottom - newValue);
+                        break;
+                    }
 
                 default:
-                {
-                    DebugAssert(false);
-                    break;
-                }
+                    {
+                        DebugAssert(false);
+                        break;
+                    }
             }
     }
 
@@ -3341,65 +3339,65 @@ public static class ModBase
         switch (level)
         {
             case LogLevel.Developer:
-            {
-                break;
-            }
+                {
+                    break;
+                }
             case LogLevel.Debug:
-            {
-                if (modeDebug)
-                    ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
-                break;
-            }
+                {
+                    if (modeDebug)
+                        ModMain.Hint("[调试模式] " + text, ModMain.HintType.Info, false);
+                    break;
+                }
             case LogLevel.Hint:
-            {
-                ModMain.Hint(text, ModMain.HintType.Critical, false);
-                break;
-            }
+                {
+                    ModMain.Hint(text, ModMain.HintType.Critical, false);
+                    break;
+                }
             case LogLevel.Msgbox:
-            {
-                ModMain.MyMsgBox(text, title, isWarn: true);
-                break;
-            }
+                {
+                    ModMain.MyMsgBox(text, title, isWarn: true);
+                    break;
+                }
             case LogLevel.Feedback:
-            {
-                if (CanFeedback(false))
                 {
-                    if (ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
-                        isWarn: true);
-                }
+                    if (CanFeedback(false))
+                    {
+                        if (ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                                title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                            Feedback(false, true);
+                    }
+                    else
+                    {
+                        ModMain.MyMsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                            isWarn: true);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case LogLevel.Critical:
-            {
-                if (isCriticalErrorTriggered)
                 {
-                    FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                    return;
-                }
+                    if (isCriticalErrorTriggered)
+                    {
+                        FormMain.EndProgramForce(ProcessReturnValues.Exception);
+                        return;
+                    }
 
-                isCriticalErrorTriggered = true;
-                if (CanFeedback(false))
-                {
-                    if (Interaction.MsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
-                        MsgBoxResult.Yes)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    Interaction.MsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, title);
-                }
+                    isCriticalErrorTriggered = true;
+                    if (CanFeedback(false))
+                    {
+                        if (Interaction.MsgBox(text + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                                (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
+                            MsgBoxResult.Yes)
+                            Feedback(false, true);
+                    }
+                    else
+                    {
+                        Interaction.MsgBox(text + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
+                            MsgBoxStyle.Critical, title);
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -3440,72 +3438,72 @@ public static class ModBase
         switch (level)
         {
             case LogLevel.Normal:
-            {
-                break;
-            }
+                {
+                    break;
+                }
             case LogLevel.Developer:
-            {
-                break;
-            }
+                {
+                    break;
+                }
             case LogLevel.Debug:
-            {
-                var exLine = desc + "：" + ex;
-                if (modeDebug)
-                    ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
-                break;
-            }
+                {
+                    var exLine = desc + "：" + ex;
+                    if (modeDebug)
+                        ModMain.Hint("[调试模式] " + exLine, ModMain.HintType.Info, false);
+                    break;
+                }
             case LogLevel.Hint:
-            {
-                var exLine = desc + "：" + ex;
-                ModMain.Hint(exLine, ModMain.HintType.Critical, false);
-                break;
-            }
+                {
+                    var exLine = desc + "：" + ex;
+                    ModMain.Hint(exLine, ModMain.HintType.Critical, false);
+                    break;
+                }
             case LogLevel.Msgbox:
-            {
-                ModMain.MyMsgBox(exFull, title, isWarn: true);
-                break;
-            }
+                {
+                    ModMain.MyMsgBox(exFull, title, isWarn: true);
+                    break;
+                }
             case LogLevel.Feedback:
-            {
-                if (CanFeedback(false))
                 {
-                    if (ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
-                        isWarn: true);
-                }
+                    if (CanFeedback(false))
+                    {
+                        if (ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                                title, "反馈", Lang.Text("Common.Action.Cancel"), isWarn: true) == 1)
+                            Feedback(false, true);
+                    }
+                    else
+                    {
+                        ModMain.MyMsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……", title,
+                            isWarn: true);
+                    }
 
-                break;
-            }
+                    break;
+                }
             case LogLevel.Critical:
-            {
-                if (isCriticalErrorTriggered)
                 {
-                    FormMain.EndProgramForce(ProcessReturnValues.Exception);
-                    return;
-                }
+                    if (isCriticalErrorTriggered)
+                    {
+                        FormMain.EndProgramForce(ProcessReturnValues.Exception);
+                        return;
+                    }
 
-                isCriticalErrorTriggered = true;
-                if (CanFeedback(false))
-                {
-                    if (Interaction.MsgBox(
-                            exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
-                            (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
-                        MsgBoxResult.Yes)
-                        Feedback(false, true);
-                }
-                else
-                {
-                    Interaction.MsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
-                        MsgBoxStyle.Critical, title);
-                }
+                    isCriticalErrorTriggered = true;
+                    if (CanFeedback(false))
+                    {
+                        if (Interaction.MsgBox(
+                                exFull + "\r\n" + "\r\n" + "是否反馈此问题？如果不反馈，这个问题可能永远无法得到解决！",
+                                (MsgBoxStyle)((int)MsgBoxStyle.Critical + (int)MsgBoxStyle.YesNo), title) ==
+                            MsgBoxResult.Yes)
+                            Feedback(false, true);
+                    }
+                    else
+                    {
+                        Interaction.MsgBox(exFull + "\r\n" + "\r\n" + "将 PCL 更新至最新版或许可以解决这个问题……",
+                            MsgBoxStyle.Critical, title);
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
@@ -3584,7 +3582,7 @@ public static class ModBase
                 OS: {RuntimeInformation.OSDescription} (32-bit: {SystemInfo.Is32BitSystem})
                 Memory: {availableMb} MB / {totalMb} MB
                 DPI: {dpi} ({dpiScale * 100}%)
-                MC Folder: {ModFolder.mcFolderSelected ?? "Nothing"}
+                MC Folder: {GameFolderManager.CurrentFolder.Location}
                 Executable Path: {exePath}
                 """;
 

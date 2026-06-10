@@ -1,13 +1,3 @@
-using System.ComponentModel;
-using System.IO;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Effects;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
@@ -19,6 +9,16 @@ using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
+using System.ComponentModel;
+using System.IO;
+using System.Net;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Media;
+using PCL.Core.Minecraft.Folder;
 
 namespace PCL;
 
@@ -563,7 +563,7 @@ public partial class FormMain
                 transformScale.CenterX = Width / 2d;
                 transformScale.CenterY = Height / 2d;
                 RenderTransform = new TransformGroup
-                    { Children = new TransformCollection([transformRotate, transformPos, transformScale]) };
+                { Children = new TransformCollection([transformRotate, transformPos, transformScale]) };
                 ModAnimation.AniStart(new[]
                 {
                     ModAnimation.AaOpacity(this, -Opacity, 140, 40,
@@ -775,7 +775,7 @@ public partial class FormMain
         if (e.Key == Key.F11 && pageCurrent == PageType.InstanceSelect)
         {
             ModMain.frmSelectRight.showHidden = !ModMain.frmSelectRight.showHidden;
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             return;
         }
@@ -870,7 +870,7 @@ public partial class FormMain
             else if (pageCurrent == PageType.InstanceSelect)
             {
                 // 实例选择自动刷新
-                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                     ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
             }
             else if (ModMain.frmMain.pageRight is PageInstanceSavesDatapack &&
@@ -1083,87 +1083,87 @@ public partial class FormMain
                 switch (PageCurrentSub)
                 {
                     case PageSubType.VersionWorld:
-                    {
-                        var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
-                                         ModBase.GetFileNameWithoutExtentionFromPath(filePath);
-                        var destLevelDat = Path.Combine(destFolder, "level.dat");
-                        if (Directory.Exists(destFolder))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFolderExists", destFolder), ModMain.HintType.Critical);
-                            return;
-                        }
-
-                        var extractFolder = Path.Combine(ModBase.pathTemp, "Cache", "WorldImport", ModBase.GetUuid().ToString());
-                        try
-                        {
-                            ModBase.ExtractFile(filePath, extractFolder);
-                            var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
-                            if (saveRoot is null)
+                            var destFolder = PageInstanceLeft.McInstance.PathIndie + @"saves\" +
+                                             ModBase.GetFileNameWithoutExtentionFromPath(filePath);
+                            var destLevelDat = Path.Combine(destFolder, "level.dat");
+                            if (Directory.Exists(destFolder))
                             {
-                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), ModMain.HintType.Critical);
+                                ModMain.Hint(Lang.Text("Main.FileDrag.SameFolderExists", destFolder), ModMain.HintType.Critical);
                                 return;
                             }
 
-                            ModBase.CopyDirectory(saveRoot, destFolder);
-                            if (!File.Exists(destLevelDat))
+                            var extractFolder = Path.Combine(ModBase.pathTemp, "Cache", "WorldImport", ModBase.GetUuid().ToString());
+                            try
+                            {
+                                ModBase.ExtractFile(filePath, extractFolder);
+                                var saveRoot = SaveImportHelper.GetSaveRootDirectory(extractFolder);
+                                if (saveRoot is null)
+                                {
+                                    ModMain.Hint(Lang.Text("Main.FileDrag.SaveNotFound"), ModMain.HintType.Critical);
+                                    return;
+                                }
+
+                                ModBase.CopyDirectory(saveRoot, destFolder);
+                                if (!File.Exists(destLevelDat))
+                                {
+                                    if (Directory.Exists(destFolder))
+                                        ModBase.DeleteDirectory(destFolder, true);
+                                    ModMain.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), ModMain.HintType.Critical);
+                                    return;
+                                }
+                            }
+                            catch (Exception ex)
                             {
                                 if (Directory.Exists(destFolder))
                                     ModBase.DeleteDirectory(destFolder, true);
-                                ModMain.Hint(Lang.Text("Main.FileDrag.SaveInvalid"), ModMain.HintType.Critical);
+                                ModBase.Log(ex, Lang.Text("Main.FileDrag.SaveImportFailed"), ModBase.LogLevel.Hint);
                                 return;
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (Directory.Exists(destFolder))
-                                ModBase.DeleteDirectory(destFolder, true);
-                            ModBase.Log(ex, Lang.Text("Main.FileDrag.SaveImportFailed"), ModBase.LogLevel.Hint);
+                            finally
+                            {
+                                if (Directory.Exists(extractFolder))
+                                    ModBase.DeleteDirectory(extractFolder, true);
+                            }
+
+                            ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(filePath)),
+                                ModMain.HintType.Finish);
+                            if (ModMain.frmInstanceSaves is not null)
+                                ModBase.RunInUi(() => ModMain.frmInstanceSaves.Reload());
                             return;
                         }
-                        finally
-                        {
-                            if (Directory.Exists(extractFolder))
-                                ModBase.DeleteDirectory(extractFolder, true);
-                        }
-
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameWithoutExtentionFromPath(filePath)),
-                            ModMain.HintType.Finish);
-                        if (ModMain.frmInstanceSaves is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceSaves.Reload());
-                        return;
-                    }
                     case PageSubType.VersionResourcePack:
-                    {
-                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
-                                       ModBase.GetFileNameFromPath(filePath);
-                        if (File.Exists(destFile))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                            var destFile = PageInstanceLeft.McInstance.PathIndie + @"resourcepacks\" +
+                                           ModBase.GetFileNameFromPath(filePath);
+                            if (File.Exists(destFile))
+                            {
+                                ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                                return;
+                            }
+
+                            ModBase.CopyFile(filePath, destFile);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
+                            if (ModMain.frmInstanceResourcePack is not null)
+                                ModBase.RunInUi(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
                             return;
                         }
-
-                        ModBase.CopyFile(filePath, destFile);
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
-                        if (ModMain.frmInstanceResourcePack is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceResourcePack.ReloadCompFileList());
-                        return;
-                    }
                     case PageSubType.VersionShader:
-                    {
-                        var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
-                                       ModBase.GetFileNameFromPath(filePath);
-                        if (File.Exists(destFile))
                         {
-                            ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                            var destFile = PageInstanceLeft.McInstance.PathIndie + @"shaderpacks\" +
+                                           ModBase.GetFileNameFromPath(filePath);
+                            if (File.Exists(destFile))
+                            {
+                                ModMain.Hint(Lang.Text("Main.FileDrag.SameFileExists", destFile), ModMain.HintType.Critical);
+                                return;
+                            }
+
+                            ModBase.CopyFile(filePath, destFile);
+                            ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
+                            if (ModMain.frmInstanceShader is not null)
+                                ModBase.RunInUi(() => ModMain.frmInstanceShader.ReloadCompFileList());
                             return;
                         }
-
-                        ModBase.CopyFile(filePath, destFile);
-                        ModMain.Hint(Lang.Text("Main.FileDrag.Imported", ModBase.GetFileNameFromPath(filePath)), ModMain.HintType.Finish);
-                        if (ModMain.frmInstanceShader is not null)
-                            ModBase.RunInUi(() => ModMain.frmInstanceShader.ReloadCompFileList());
-                        return;
-                    }
                 }
 
             // 处理投影文件
@@ -1344,17 +1344,17 @@ public partial class FormMain
         switch (WindowState)
         {
             case WindowState.Minimized:
-            {
-                ModVideoBack.isMinimized = true;
-                ModVideoBack.VideoPause();
-                break;
-            }
+                {
+                    ModVideoBack.isMinimized = true;
+                    ModVideoBack.VideoPause();
+                    break;
+                }
             case WindowState.Normal:
-            {
-                ModVideoBack.isMinimized = false;
-                ModVideoBack.VideoPlay();
-                break;
-            }
+                {
+                    ModVideoBack.isMinimized = false;
+                    ModVideoBack.VideoPlay();
+                    break;
+                }
         }
     }
 
@@ -1485,34 +1485,34 @@ public partial class FormMain
         switch (stack.page)
         {
             case PageType.InstanceSelect:
-            {
-                return Lang.Text("Main.Title.InstanceSelect");
-            }
+                {
+                    return Lang.Text("Main.Title.InstanceSelect");
+                }
             case PageType.TaskManager:
-            {
-                return Lang.Text("Main.Title.TaskManager");
-            }
+                {
+                    return Lang.Text("Main.Title.TaskManager");
+                }
             case PageType.GameLog:
-            {
-                return Lang.Text("Main.Title.GameLog");
-            }
+                {
+                    return Lang.Text("Main.Title.GameLog");
+                }
             case PageType.InstanceSetup:
-            {
-                return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.McInstance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.McInstance.Name);
-            }
+                {
+                    return Lang.Text("Main.Title.InstanceSetup", PageInstanceLeft.McInstance is null ? Lang.Text("Common.State.Unknown") : PageInstanceLeft.McInstance.Name);
+                }
             case PageType.CompDetail:
-            {
-                return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
-            }
+                {
+                    return Lang.Text("Main.Title.ResourceDownload", stack.additional.Value.CompProject.TranslatedName);
+                }
             case PageType.VersionSaves:
-            {
-                return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
-            }
+                {
+                    return Lang.Text("Main.Title.SaveManagement", ModBase.GetFolderNameFromPath(stack.additional.Value.SavePath));
+                }
 
             default:
-            {
-                return "";
-            }
+                {
+                    return "";
+                }
         }
     }
 
@@ -1553,30 +1553,30 @@ public partial class FormMain
             switch (pageCurrent.page)
             {
                 case PageType.Download:
-                {
-                    if (ModMain.frmDownloadLeft is null)
-                        ModMain.frmDownloadLeft = new PageDownloadLeft();
-                    return ModMain.frmDownloadLeft.pageID;
-                }
+                    {
+                        if (ModMain.frmDownloadLeft is null)
+                            ModMain.frmDownloadLeft = new PageDownloadLeft();
+                        return ModMain.frmDownloadLeft.pageID;
+                    }
 
                 case PageType.Setup:
-                {
-                    if (ModMain.frmSetupLeft is null)
-                        ModMain.frmSetupLeft = new PageSetupLeft();
-                    return ModMain.frmSetupLeft.pageID;
-                }
+                    {
+                        if (ModMain.frmSetupLeft is null)
+                            ModMain.frmSetupLeft = new PageSetupLeft();
+                        return ModMain.frmSetupLeft.pageID;
+                    }
 
                 case PageType.InstanceSetup:
-                {
-                    if (ModMain.frmInstanceLeft is null)
-                        ModMain.frmInstanceLeft = new PageInstanceLeft();
-                    return ModMain.frmInstanceLeft.pageID;
-                }
+                    {
+                        if (ModMain.frmInstanceLeft is null)
+                            ModMain.frmInstanceLeft = new PageInstanceLeft();
+                        return ModMain.frmInstanceLeft.pageID;
+                    }
 
                 default:
-                {
-                    return 0; // 没有子页面
-                }
+                    {
+                        return 0; // 没有子页面
+                    }
             }
         }
     }
@@ -1672,28 +1672,28 @@ public partial class FormMain
             switch (stack.page)
             {
                 case PageType.Download:
-                {
-                    if (ModMain.frmDownloadLeft is null)
-                        ModMain.frmDownloadLeft = new PageDownloadLeft();
-                    foreach (var item in ModMain.frmDownloadLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
-                        {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.frmDownloadLeft is null)
+                            ModMain.frmDownloadLeft = new PageDownloadLeft();
+                        foreach (var item in ModMain.frmDownloadLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                ModBase.Val(listItem.Tag) == (double)subType)
+                            {
+                                listItem.SetChecked(true, true, stack == pageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
                 case PageType.Setup:
-                {
-                    if (ModMain.frmSetupLeft is null)
-                        ModMain.frmSetupLeft = new PageSetupLeft();
-                    if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
-                        ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
-                            stack == pageCurrent);
-                    break;
-                }
+                    {
+                        if (ModMain.frmSetupLeft is null)
+                            ModMain.frmSetupLeft = new PageSetupLeft();
+                        if (ModMain.frmSetupLeft.PanItem.Children[(int)subType] is MyListItem)
+                            ((MyListItem)ModMain.frmSetupLeft.PanItem.Children[(int)subType]).SetChecked(true, true,
+                                stack == pageCurrent);
+                        break;
+                    }
             }
 
             PageChangeActual(stack, subType);
@@ -1704,33 +1704,33 @@ public partial class FormMain
             switch (stack.page)
             {
                 case PageType.InstanceSetup:
-                {
-                    if (ModMain.frmInstanceLeft is null)
-                        ModMain.frmInstanceLeft = new PageInstanceLeft();
-                    foreach (var item in ModMain.frmInstanceLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
-                        {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.frmInstanceLeft is null)
+                            ModMain.frmInstanceLeft = new PageInstanceLeft();
+                        foreach (var item in ModMain.frmInstanceLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                ModBase.Val(listItem.Tag) == (double)subType)
+                            {
+                                listItem.SetChecked(true, true, stack == pageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
                 case PageType.VersionSaves:
-                {
-                    if (ModMain.frmInstanceSavesLeft is null)
-                        ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
-                    foreach (var item in ModMain.frmInstanceSavesLeft.PanItem.Children)
-                        if (item is MyListItem listItem &&
-                            ModBase.Val(listItem.Tag) == (double)subType)
-                        {
-                            listItem.SetChecked(true, true, stack == pageCurrent);
-                            break;
-                        }
+                    {
+                        if (ModMain.frmInstanceSavesLeft is null)
+                            ModMain.frmInstanceSavesLeft = new PageInstanceSavesLeft();
+                        foreach (var item in ModMain.frmInstanceSavesLeft.PanItem.Children)
+                            if (item is MyListItem listItem &&
+                                ModBase.Val(listItem.Tag) == (double)subType)
+                            {
+                                listItem.SetChecked(true, true, stack == pageCurrent);
+                                break;
+                            }
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             PageChangeActual(stack, subType);
@@ -1746,7 +1746,7 @@ public partial class FormMain
             return;
         var pageType = (PageType)int.Parse(sender.Tag.ToString());
         PageChangeActual(pageType, PageSubType.Default);
-        }
+    }
 
     private void BtnTitleInner_Click(object sender, EventArgs e)
     {
@@ -2080,7 +2080,7 @@ public partial class FormMain
     {
         if (ModMain.dragControl is null)
             return;
-        if (Mouse.LeftButton == MouseButtonState.Pressed) 
+        if (Mouse.LeftButton == MouseButtonState.Pressed)
         {
             ModMain.dragControl.DragDoing();
         }

@@ -20,7 +20,11 @@ public partial class GameFolderManager
     private static readonly HashSet<GameFolder> _GameFolders = [];
     public static IReadOnlyList<GameFolder> GameFolders => _GameFolders.ToList();
 
-    public static GameFolder? CurrentFolder = null;
+    public static GameFolder CurrentFolder
+    {
+        get => field ?? GameFolder.Empty;
+        set;
+    }
 
     [LifecycleStart]
     private static async Task _StartAsync()
@@ -31,8 +35,7 @@ public partial class GameFolderManager
 
         foreach (var folder in _GameFolders)
         {
-            var entity = new LauncherProfilesEntity(folder.Location);
-            await entity.CreateDefaultProfileAsync().ConfigureAwait(false);
+            await _WriteOrCreateLauncherProfileAsync(folder.Location).ConfigureAwait(false);
         }
 
         Context.DeclareStopped();

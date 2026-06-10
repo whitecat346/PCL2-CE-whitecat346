@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Folder;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 
@@ -145,7 +146,7 @@ public partial class PageInstanceInstall
         var request = new ModDownloadLib.McInstallRequest
         {
             targetInstanceName = PageInstanceLeft.McInstance.Name,
-            targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
+            targetInstanceFolder = $@"{GameFolderManager.CurrentFolder.Location}versions\{PageInstanceLeft.McInstance.Name}\",
             minecraftJson = _vanillaData?["url"].ToString(),
             minecraftName = _vanillaName,
             optiFineEntry = selectedOptiFine,

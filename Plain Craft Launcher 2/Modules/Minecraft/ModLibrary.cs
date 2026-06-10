@@ -1,12 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Text.Json.Nodes;
 using PCL.Core.App;
-using PCL.Core.Utils;
-using PCL.Core.Utils.Exts;
+using PCL.Core.Minecraft.Folder;
 using PCL.Core.Utils.OS;
 using PCL.Network;
+using System.IO;
 
 namespace PCL;
 
@@ -168,7 +164,7 @@ public static class ModLibrary
                     {
                         if ((originalInstance.InheritInstanceName ?? "") == (originalInstance.Name ?? ""))
                             break;
-                        originalInstance = new McInstance(Path.Combine(ModFolder.mcFolderSelected, "versions", originalInstance.InheritInstanceName));
+                        originalInstance = new McInstance(Path.Combine(GameFolderManager.CurrentFolder.Location, "versions", originalInstance.InheritInstanceName));
                     }
 
                 // 需要新建对象，否则后面的 Check 会导致 McInstanceCurrent 的 State 变回 Original
@@ -207,8 +203,11 @@ public static class ModLibrary
             // 把所需的原版 Jar 添加进去
             result.Add(new McLibToken
             {
-                LocalPath = realMcInstance.PathInstance + realMcInstance.Name + ".jar", size = 0L, IsNatives = false,
-                Url = clientUrl, Sha1 = clientSHA1
+                LocalPath = realMcInstance.PathInstance + realMcInstance.Name + ".jar",
+                size = 0L,
+                IsNatives = false,
+                Url = clientUrl,
+                Sha1 = clientSHA1
             });
         }
 
@@ -221,7 +220,7 @@ public static class ModLibrary
     public static List<McLibToken> McLibListGetWithJson(JsonObject jsonObject,
         bool keepSameNameDifferentVersionResult = false, string customMcFolder = null, McInstance targetMcInstance = null)
     {
-        customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
+        customMcFolder = customMcFolder ?? GameFolderManager.CurrentFolder.Location;
         var basicArray = new List<McLibToken>();
 
         // 添加基础 Json 项
@@ -278,8 +277,13 @@ public static class ModLibrary
                     {
                         basicArray.Add(new McLibToken
                         {
-                            OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
-                            IsNatives = false, Sha1 = null, IsLocal = isLocal
+                            OriginalName = (string)library["name"],
+                            Url = rootUrl,
+                            LocalPath = localPath,
+                            size = 0L,
+                            IsNatives = false,
+                            Sha1 = null,
+                            IsLocal = isLocal
                         });
                     }
                 }
@@ -288,8 +292,12 @@ public static class ModLibrary
                     ModBase.Log(ex, "处理实际支持库列表失败（无 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
-                        OriginalName = (string)library["name"], Url = rootUrl, LocalPath = localPath, size = 0L,
-                        IsNatives = false, Sha1 = null
+                        OriginalName = (string)library["name"],
+                        Url = rootUrl,
+                        LocalPath = localPath,
+                        size = 0L,
+                        IsNatives = false,
+                        Sha1 = null
                     });
                 }
             }
@@ -319,11 +327,15 @@ public static class ModLibrary
                     else
                         basicArray.Add(new McLibToken
                         {
-                            OriginalName = (string)library["name"], Url = rootUrl,
+                            OriginalName = (string)library["name"],
+                            Url = rootUrl,
                             LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
                                 .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                                 .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                            size = 0L, IsNatives = true, Sha1 = null, IsLocal = isLocal
+                            size = 0L,
+                            IsNatives = true,
+                            Sha1 = null,
+                            IsLocal = isLocal
                         });
                 }
                 catch (Exception ex)
@@ -331,11 +343,15 @@ public static class ModLibrary
                     ModBase.Log(ex, "处理实际支持库列表失败（有 Natives，" + (library["name"] ?? "Nothing") + "）");
                     basicArray.Add(new McLibToken
                     {
-                        OriginalName = (string)library["name"], Url = rootUrl,
+                        OriginalName = (string)library["name"],
+                        Url = rootUrl,
                         LocalPath = McLibGet((string)library["name"], customMcFolder: customMcFolder)
                             .Replace(".jar", "-" + library["natives"]["windows"] + ".jar")
                             .Replace("${arch}", Environment.Is64BitOperatingSystem ? "64" : "32"),
-                        size = 0L, IsNatives = true, Sha1 = null, IsLocal = false
+                        size = 0L,
+                        IsNatives = true,
+                        Sha1 = null,
+                        IsLocal = false
                     });
                 }
             }
@@ -471,14 +487,14 @@ public static class ModLibrary
             {
                 if (Directory.Exists(Path.Combine(mcInstance.PathInstance, "labymod-neo")))
                     Directory.Delete(Path.Combine(mcInstance.PathInstance, "labymod-neo"), true);
-                ModBase.CreateSymbolicLink(Path.Combine(mcInstance.PathInstance, "labymod-neo"), Path.Combine(ModFolder.mcFolderSelected, "labymod-neo"),
+                ModBase.CreateSymbolicLink(Path.Combine(mcInstance.PathInstance, "labymod-neo"), Path.Combine(GameFolderManager.CurrentFolder.Location, "labymod-neo"),
                     0x2);
             }
 
             try
             {
                 var channelType = mcInstance.JsonObject["labymod_data"]["channelType"].ToString();
-                Directory.CreateDirectory($@"{ModFolder.mcFolderSelected}labymod-neo\libraries");
+                Directory.CreateDirectory($@"{GameFolderManager.CurrentFolder.Location}labymod-neo\libraries");
                 ModBase.Log("[Minecraft] 开始获取 LabyMod 信息");
                 var labyManifest = (JsonObject)ModNet.NetGetCodeByRequestRetry(
                     $"https://releases.r2.labymod.net/api/v1/manifest/{channelType}/latest.json", isJson: true);
@@ -488,7 +504,7 @@ public static class ModLibrary
                 {
                     var assetName = Asset.Key;
                     var assetSHA1 = Asset.Value.ToString();
-                    var assetPath = $@"{ModFolder.mcFolderSelected}labymod-neo\assets\{assetName}.jar";
+                    var assetPath = $@"{GameFolderManager.CurrentFolder.Location}labymod-neo\assets\{assetName}.jar";
                     var assetUrl =
                         $"https://releases.r2.labymod.net/api/v1/download/assets/labymod4/{channelType}/{labyModCommitRef}/{assetName}/{assetSHA1}.jar";
                     var checker = new ModBase.FileChecker(hash: assetSHA1);
@@ -527,7 +543,7 @@ public static class ModLibrary
     /// </summary>
     public static List<DownloadFile> McLibNetFilesFromTokens(List<McLibToken> libs, string customMcFolder = null)
     {
-        customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
+        customMcFolder = customMcFolder ?? GameFolderManager.CurrentFolder.Location;
         var result = new List<DownloadFile>();
         // 获取
         foreach (var token in libs)
@@ -620,7 +636,7 @@ public static class ModLibrary
         string customMcFolder = null)
     {
         string mcLibGetRet = default;
-        customMcFolder = customMcFolder ?? ModFolder.mcFolderSelected;
+        customMcFolder = customMcFolder ?? GameFolderManager.CurrentFolder.Location;
         var splited = original.Split(":");
         mcLibGetRet = withHead
             ? Path.Combine(customMcFolder, "libraries", splited[0].Replace(".", @"\"), splited[1], splited[2], splited[1] + "-" + splited[2] + ".jar")

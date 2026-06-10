@@ -13,6 +13,7 @@ using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Folder;
 
 namespace PCL;
 
@@ -241,8 +242,8 @@ public partial class PageInstanceOverall
                 PageInstanceLeft.McInstance.displayType = (McInstanceCardType)States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance];
                 ModMain.frmInstanceLeft.RefreshModDisabled();
 
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
-                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
@@ -271,8 +272,8 @@ public partial class PageInstanceOverall
 
                 States.Instance.CardType[PageInstanceLeft.McInstance.PathInstance] =
                     (int)McInstanceCardType.Hidden;
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
-                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
             catch (Exception ex)
@@ -294,7 +295,7 @@ public partial class PageInstanceOverall
                 States.Instance.CustomInfo[PageInstanceLeft.McInstance.PathInstance] = newInfo;
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
             Reload();
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
@@ -313,13 +314,13 @@ public partial class PageInstanceOverall
             var oldPath = PageInstanceLeft.McInstance.PathInstance;
             // 修改此部分的同时修改快速安装的实例名检测*
             var newName = ModMain.MyMsgBoxInput(Lang.Text("Instance.Overall.Name.EditTitle"), "", oldName,
-                [new FolderNameValidator(ModFolder.mcFolderSelected + "versions", ignoreCase: false)]);
+                [new FolderNameValidator(GameFolderManager.CurrentFolder.Location + "versions", ignoreCase: false)]);
             if (string.IsNullOrWhiteSpace(newName))
                 return;
-            var newPath = Path.Combine(ModFolder.mcFolderSelected, "versions", newName);
+            var newPath = Path.Combine(GameFolderManager.CurrentFolder.Location, "versions", newName);
             // 获取临时中间名，以防止仅修改大小写的重命名失败
             var tempName = newName + "_temp";
-            var tempPath = Path.Combine(ModFolder.mcFolderSelected, "versions", tempName);
+            var tempPath = Path.Combine(GameFolderManager.CurrentFolder.Location, "versions", tempName);
             var isCaseChangedOnly = (newName.ToLower() ?? "") == (oldName.ToLower() ?? "");
             // 重新加载实例 Json 信息，避免 HMCL 项被合并
             JsonObject jsonObject;
@@ -374,8 +375,8 @@ public partial class PageInstanceOverall
                 ModBase.WriteFile(Path.Combine(newPath, "PCL", "Setup.ini"),
                     ModBase.ReadFile(Path.Combine(newPath, "PCL", "Setup.ini")).Replace(oldPath, newPath));
             // 更改已选中的实例
-            if ((ModBase.ReadIni(ModFolder.mcFolderSelected + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+            if ((ModBase.ReadIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "Version") ?? "") == (oldName ?? ""))
+                ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "Version", newName);
             // 写入实例 Json，并删除旧的 Json
             try
             {
@@ -394,9 +395,9 @@ public partial class PageInstanceOverall
             PageInstanceLeft.McInstance = new McInstance(newName).Load();
             if (ModInstanceList.McMcInstanceSelected is not null &&
                 ModInstanceList.McMcInstanceSelected.Equals(PageInstanceLeft.McInstance))
-                ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "Version", newName);
+                ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "Version", newName);
             Reload();
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
@@ -441,10 +442,10 @@ public partial class PageInstanceOverall
             States.Instance.LogoPath[PageInstanceLeft.McInstance.PathInstance] = newLogo;
             States.Instance.IsLogoCustom[PageInstanceLeft.McInstance.PathInstance] = !string.IsNullOrEmpty(newLogo);
             // 刷新显示
-            ModBase.WriteIni(ModFolder.mcFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
+            ModBase.WriteIni(GameFolderManager.CurrentFolder.Location + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
             Reload();
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
@@ -462,7 +463,7 @@ public partial class PageInstanceOverall
             PageInstanceLeft.McInstance = new McInstance(PageInstanceLeft.McInstance.Name).Load();
             Reload();
             ModInstanceList.mcInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         }
         catch (Exception ex)
@@ -626,7 +627,7 @@ public partial class PageInstanceOverall
             var request = new ModDownloadLib.McInstallRequest
             {
                 targetInstanceName = PageInstanceLeft.McInstance.Name,
-                targetInstanceFolder = $@"{ModFolder.mcFolderSelected}versions\{PageInstanceLeft.McInstance.Name}\",
+                targetInstanceFolder = $@"{GameFolderManager.CurrentFolder.Location}versions\{PageInstanceLeft.McInstance.Name}\",
                 minecraftName = currentVersion.VanillaName,
                 optiFineEntry = currentVersion.HasOptiFine
                     ? new ModDownload.DlOptiFineListEntry
@@ -687,7 +688,7 @@ public partial class PageInstanceOverall
                 PageInstanceLeft.McInstance.state != McInstanceState.Error &&
                 !string.Equals(
                     PageInstanceLeft.McInstance.PathIndie,
-                    ModFolder.mcFolderSelected,
+                    GameFolderManager.CurrentFolder.Location,
                     StringComparison.OrdinalIgnoreCase
                 );
 
@@ -737,7 +738,7 @@ public partial class PageInstanceOverall
                 }
             }
 
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             ModMain.frmMain.PageBack();
         }

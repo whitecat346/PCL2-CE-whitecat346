@@ -11,6 +11,8 @@ public record GameFolder(
 
     /// <inheritdoc />
     public override int GetHashCode() => Location.GetHashCode();
+
+    public static GameFolder Empty = new(string.Empty, string.Empty, GameFolderType.Original);
 }
 
 public enum GameFolderType

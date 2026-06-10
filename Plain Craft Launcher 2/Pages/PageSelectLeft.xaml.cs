@@ -6,6 +6,7 @@ using System.Windows.Input;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Folder;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
 using PCL.Network;
@@ -272,7 +273,7 @@ public partial class PageSelectLeft : IRefreshable
 
             // 确认勾选状态
             for (var i = 0; i < ModFolder.mcFolderList.Count; i++)
-                if (ModFolder.mcFolderList[i].Location == ModFolder.mcFolderSelected)
+                if (ModFolder.mcFolderList[i].Location == GameFolderManager.CurrentFolder.Location)
                 {
                     ((MyListItem)ModMain.frmSelectLeft.PanList.Children[i + 1]).Checked = true; //去掉第一个标题
                     return;
@@ -290,7 +291,7 @@ public partial class PageSelectLeft : IRefreshable
         finally
         {
             ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader,
-                ModFolder.mcFolderSelected,
+                GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.RunOnUpdated,
                 1,
                 "versions\\");
@@ -645,14 +646,14 @@ public partial class PageSelectLeft : IRefreshable
 
     public void RefreshCurrent()
     {
-        RefreshCurrent(ModFolder.mcFolderSelected);
+        RefreshCurrent(GameFolderManager.CurrentFolder.Location);
     }
 
     public static void RefreshCurrent(string folder)
     {
         ModBase.WriteIni(Path.Combine(folder, "PCL.ini"), "InstanceCache", "");
-        if (folder == ModFolder.mcFolderSelected)
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        if (folder == GameFolderManager.CurrentFolder.Location)
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
@@ -720,7 +721,7 @@ public partial class PageSelectLeft : IRefreshable
         // 更换
         States.Game.SelectedFolder = ((ModFolder.McFolder)sender.Tag).Location.Replace(ModBase.exePath, "$");
         ModFolder.mcFolderListLoader.Start(isForceRestart: true);
-        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\"); // 刷新实例列表
     }
 

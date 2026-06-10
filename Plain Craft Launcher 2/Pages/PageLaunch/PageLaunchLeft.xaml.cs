@@ -1,13 +1,14 @@
+using PCL.Core.App;
+using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Folder;
+using PCL.Core.Utils;
+using PCL.Network;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using PCL.Core.App;
-using PCL.Core.App.Localization;
-using PCL.Core.Utils;
-using PCL.Network;
 
 namespace PCL;
 
@@ -107,21 +108,24 @@ public partial class PageLaunchLeft
             }
 
             // 确认 Minecraft 文件夹存在
-            ModFolder.mcFolderSelected =
-                States.Game.SelectedFolder.ToString().Replace("$", ModBase.exePath);
-            if (string.IsNullOrEmpty(ModFolder.mcFolderSelected) || !Directory.Exists(ModFolder.mcFolderSelected))
+            var currentFolder = GameFolderManager.CurrentFolder;
+            GameFolderManager.CurrentFolder = currentFolder with
+            {
+                Location = States.Game.SelectedFolder.ToString().Replace("$", ModBase.exePath)
+            };
+            if (string.IsNullOrEmpty(GameFolderManager.CurrentFolder.Location) || !Directory.Exists(GameFolderManager.CurrentFolder.Location))
             {
                 // 无效的文件夹
-                if (string.IsNullOrEmpty(ModFolder.mcFolderSelected))
+                if (string.IsNullOrEmpty(GameFolderManager.CurrentFolder.Location))
                     ModBase.Log("[Launch] 没有已储存的 Minecraft 文件夹");
                 else
-                    ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + ModFolder.mcFolderSelected,
+                    ModBase.Log("[Launch] Minecraft 文件夹无效，该文件夹已不存在：" + GameFolderManager.CurrentFolder.Location,
                         ModBase.LogLevel.Debug);
                 ModFolder.mcFolderListLoader.WaitForExit(isForceRestart: true);
                 States.Game.SelectedFolder = ModFolder.mcFolderList[0].Location.Replace(ModBase.exePath, "$");
             }
 
-            ModBase.Log("[Launch] Minecraft 文件夹：" + ModFolder.mcFolderSelected);
+            ModBase.Log("[Launch] Minecraft 文件夹：" + GameFolderManager.CurrentFolder.Location);
             if (Config.Debug.AddRandomDelay)
                 Thread.Sleep(RandomUtils.NextInt(500, 3000));
             // 自动整合包安装
@@ -150,14 +154,14 @@ public partial class PageLaunchLeft
             // 确认 Minecraft 版本实例
             var selection = States.Game.SelectedInstance;
             var instance = selection == "" ? null : new McInstance(selection);
-            if (instance is null || !instance.PathInstance.StartsWithF(ModFolder.mcFolderSelected) ||
+            if (instance is null || !instance.PathInstance.StartsWithF(GameFolderManager.CurrentFolder.Location) ||
                 !instance.Check())
             {
                 // 无效的实例
                 ModBase.Log("[Launch] 当前选择的 Minecraft 实例无效：" + (instance is null ? "null" : instance.PathInstance),
                     instance is null ? ModBase.LogLevel.Normal : ModBase.LogLevel.Debug);
                 if (ModInstanceList.mcInstanceListLoader.State != ModBase.LoadState.Finished)
-                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\", true);
                 if (ModInstanceList.mcInstanceList.Count == 0 ||
                     ModInstanceList.mcInstanceList.First().Value[0].Logo.Contains("RedstoneBlock"))
@@ -221,21 +225,21 @@ public partial class PageLaunchLeft
         switch (_launchButtonAction)
         {
             case LaunchButtonAction.Launch:
-            {
-                if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
                 {
-                    ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), ModMain.HintType.Critical);
-                    return;
-                }
+                    if (File.Exists(ModInstanceList.McMcInstanceSelected.PathInstance + ".pclignore"))
+                    {
+                        ModMain.Hint(Lang.Text("Launch.Home.Instance.InstallingCannotLaunch"), ModMain.HintType.Critical);
+                        return;
+                    }
 
-                ModLaunch.McLaunchStart();
-                break;
-            }
+                    ModLaunch.McLaunchStart();
+                    break;
+                }
             case LaunchButtonAction.Download:
-            {
-                ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
-                break;
-            }
+                {
+                    ModMain.frmMain.PageChange(FormMain.PageType.Download, FormMain.PageSubType.DownloadInstall);
+                    break;
+                }
         }
     }
 
@@ -272,55 +276,55 @@ public partial class PageLaunchLeft
         switch (currentState)
         {
             case 0:
-            {
-                _launchButtonAction = LaunchButtonAction.Loading;
-                ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
-                ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Loading");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.Loading");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = false;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    _launchButtonAction = LaunchButtonAction.Loading;
+                    ModBase.Log("[Minecraft] 启动按钮：正在加载 Minecraft 实例");
+                    ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Loading");
+                    ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
+                    ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.Loading");
+                    ModMain.frmLaunchLeft.BtnInstance.IsEnabled = false;
+                    ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 1:
-            {
-                _launchButtonAction = LaunchButtonAction.Disabled;
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
-                ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    _launchButtonAction = LaunchButtonAction.Disabled;
+                    ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，下载已禁用");
+                    ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
+                    ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = false;
+                    ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
+                    ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
+                    ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 2:
-            {
-                _launchButtonAction = LaunchButtonAction.Download;
-                ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
-                ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Download");
-                ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
-                ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
-                break;
-            }
+                {
+                    _launchButtonAction = LaunchButtonAction.Download;
+                    ModBase.Log("[Minecraft] 启动按钮：无 Minecraft 实例，要求下载");
+                    ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Download");
+                    ModMain.frmLaunchLeft.BtnLaunch.IsEnabled = true;
+                    ModMain.frmLaunchLeft.LabVersion.Text = Lang.Text("Launch.Home.Instance.NotFound");
+                    ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
+                    ModMain.frmLaunchLeft.BtnMore.Visibility = Visibility.Collapsed;
+                    break;
+                }
             case 3:
-            {
-                _launchButtonAction = LaunchButtonAction.Launch;
-                ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
-                ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
-                ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
-                if (ModProfile.selectedProfile is not null)
-                    BtnLaunch.IsEnabled = true;
-                else
-                    BtnLaunch.IsEnabled = false;
-                ModMain.frmLaunchLeft.LabVersion.Text = ModInstanceList.McMcInstanceSelected.Name;
-                break;
-            }
-            // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
+                {
+                    _launchButtonAction = LaunchButtonAction.Launch;
+                    ModBase.Log("[Minecraft] 启动按钮：Minecraft 实例：" + ModInstanceList.McMcInstanceSelected.PathInstance);
+                    ModMain.frmLaunchLeft.BtnLaunch.Text = Lang.Text("Launch.Home.Button.Launch");
+                    ModMain.frmLaunchLeft.BtnInstance.IsEnabled = true;
+                    if (ModProfile.selectedProfile is not null)
+                        BtnLaunch.IsEnabled = true;
+                    else
+                        BtnLaunch.IsEnabled = false;
+                    ModMain.frmLaunchLeft.LabVersion.Text = ModInstanceList.McMcInstanceSelected.Name;
+                    break;
+                }
+                // FrmLaunchLeft.BtnMore.Visibility = Visibility.Visible '由功能隐藏设置修改
         }
 
-        ExitRefresh: ;
+    ExitRefresh:;
 
         // 功能隐藏
         ModMain.frmLaunchLeft.BtnInstance.Visibility =
@@ -548,22 +552,22 @@ public partial class PageLaunchLeft
         switch (ModProfile.selectedProfile.Type)
         {
             case ModLaunch.McLoginType.Legacy:
-            {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Offline");
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Offline");
+                    break;
+                }
             case ModLaunch.McLoginType.Ms:
-            {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Microsoft");
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.Microsoft");
+                    break;
+                }
             case ModLaunch.McLoginType.Auth:
-            {
-                LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ModProfile.selectedProfile.ServerName)
-                    ? " / " + ModProfile.selectedProfile.ServerName
-                    : "");
-                break;
-            }
+                {
+                    LabLaunchingMethod.Text = Lang.Text("Launch.Account.Type.ThirdParty") + (!string.IsNullOrEmpty(ModProfile.selectedProfile.ServerName)
+                        ? " / " + ModProfile.selectedProfile.ServerName
+                        : "");
+                    break;
+                }
         }
 
         // 初始化页面
@@ -663,40 +667,40 @@ public partial class PageLaunchLeft
         switch (type)
         {
             case PageType.Auth:
-            {
-                if (ModMain.frmLoginAuth is null)
-                    ModMain.frmLoginAuth = new PageLoginAuth();
-                return ModMain.frmLoginAuth;
-            }
+                {
+                    if (ModMain.frmLoginAuth is null)
+                        ModMain.frmLoginAuth = new PageLoginAuth();
+                    return ModMain.frmLoginAuth;
+                }
             case PageType.Ms:
-            {
-                if (ModMain.frmLoginMs is null)
-                    ModMain.frmLoginMs = new PageLoginMs();
-                return ModMain.frmLoginMs;
-            }
+                {
+                    if (ModMain.frmLoginMs is null)
+                        ModMain.frmLoginMs = new PageLoginMs();
+                    return ModMain.frmLoginMs;
+                }
             case PageType.Profile:
-            {
-                if (ModMain.frmLoginProfile is null)
-                    ModMain.frmLoginProfile = new PageLoginProfile();
-                return ModMain.frmLoginProfile;
-            }
+                {
+                    if (ModMain.frmLoginProfile is null)
+                        ModMain.frmLoginProfile = new PageLoginProfile();
+                    return ModMain.frmLoginProfile;
+                }
             case PageType.ProfileSkin:
-            {
-                if (ModMain.frmLoginProfileSkin is null)
-                    ModMain.frmLoginProfileSkin = new PageLoginProfileSkin();
-                return ModMain.frmLoginProfileSkin;
-            }
+                {
+                    if (ModMain.frmLoginProfileSkin is null)
+                        ModMain.frmLoginProfileSkin = new PageLoginProfileSkin();
+                    return ModMain.frmLoginProfileSkin;
+                }
             case PageType.Offline:
-            {
-                if (ModMain.frmLoginOffline is null)
-                    ModMain.frmLoginOffline = new PageLoginOffline();
-                return ModMain.frmLoginOffline;
-            }
+                {
+                    if (ModMain.frmLoginOffline is null)
+                        ModMain.frmLoginOffline = new PageLoginOffline();
+                    return ModMain.frmLoginOffline;
+                }
 
             default:
-            {
-                throw new ArgumentOutOfRangeException("Type", "即将切换的登录分页编号越界");
-            }
+                {
+                    throw new ArgumentOutOfRangeException("Type", "即将切换的登录分页编号越界");
+                }
         }
     }
 
@@ -879,7 +883,7 @@ public partial class PageLaunchLeft
             }
         }
 
-        Finish: ;
+    Finish:;
 
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))
@@ -980,7 +984,7 @@ public partial class PageLaunchLeft
             }
         }
 
-        Finish: ;
+    Finish:;
 
         // 刷新显示
         if (ModMain.frmLoginProfileSkin is not null && ReferenceEquals(ModMain.frmLoginProfileSkin.Skin.loader, data))

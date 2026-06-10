@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,6 +13,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 using PCL.Core.App.Localization;
+using PCL.Core.Minecraft.Folder;
 using PCL.Core.UI;
 
 namespace PCL;
@@ -44,7 +45,7 @@ public partial class PageSelectRight
     // 窗口基础
     private void PageSelectRight_Loaded(object sender, RoutedEventArgs e)
     {
-        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+        ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
             ModLoader.LoaderFolderRunType.RunOnUpdated, 1, @"versions\");
         PanBack.ScrollToHome();
         PanVerSearchBox.TextChanged += (a, b) => PanVerSearchBox_TextChanged(a, (TextChangedEventArgs)b);
@@ -117,7 +118,7 @@ public partial class PageSelectRight
     private void Load_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModInstanceList.mcInstanceListLoader.State == ModBase.LoadState.Failed)
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
     }
 
@@ -443,7 +444,7 @@ public partial class PageSelectRight
         {
             States.Instance.Starred[version.PathInstance] = !version.IsStar;
             ModInstanceList.mcInstanceListForceRefresh = true;
-            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+            ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
         };
         var btnOpenFolder = new MyIconButton { LogoScale = 1.1d, SvgIcon = "lucide/folder-open" };
@@ -524,7 +525,7 @@ public partial class PageSelectRight
         {
             var isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
             var isHintIndie = mcInstance.state != McInstanceState.Error &&
-                              (mcInstance.PathIndie ?? "") != (ModFolder.mcFolderSelected ?? "");
+                              (mcInstance.PathIndie ?? "") != (GameFolderManager.CurrentFolder.Location ?? "");
             var confirmMsg = isShiftPressed
                 ? Lang.Text("Select.Instance.Delete.ConfirmPermanentMessage", mcInstance.Name)
                 : Lang.Text("Select.Instance.Delete.ConfirmMessage", mcInstance.Name);
@@ -576,20 +577,20 @@ public partial class PageSelectRight
                         (ModInstanceList.McMcInstanceSelected.PathInstance ?? ""))
                         // 删除当前实例就更改选择
                         ModInstanceList.McMcInstanceSelected = (McInstance)((MyListItem)parent.Children[0]).Tag;
-                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                         ModLoader.LoaderFolderRunType.UpdateOnly, 1, @"versions\");
                 }
                 else
                 {
                     // 删除后没剩了
-                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                    ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                         ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
                 }
             }
             else
             {
                 // 同时出现在当前卡片与收藏夹
-                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, ModFolder.mcFolderSelected,
+                ModLoader.LoaderFolderRun(ModInstanceList.mcInstanceListLoader, GameFolderManager.CurrentFolder.Location,
                     ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");
             }
         }

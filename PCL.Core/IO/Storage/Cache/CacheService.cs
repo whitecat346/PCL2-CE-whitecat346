@@ -402,6 +402,9 @@ public class CacheService : ICacheService, IAsyncDisposable
     public Task DeleteInstanceAsync(string instancePath, CancellationToken ct = default)
         => _db.DeleteInstanceAsync(instancePath, ct);
 
+    public Task<List<InstanceCacheRow>> GetAllInstancesAsync(CancellationToken ct = default)
+        => _db.GetAllInstancesAsync(ct);
+
     public Task UpsertComponentAsync(ComponentCacheRow row, CancellationToken ct = default)
         => _db.UpsertComponentAsync(row, ct);
 

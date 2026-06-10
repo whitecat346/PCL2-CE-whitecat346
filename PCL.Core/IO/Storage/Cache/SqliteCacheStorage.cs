@@ -338,6 +338,21 @@ public class SqliteCacheStorage(string dbPath) : IDisposable
         }
     }
 
+    public async Task<List<InstanceCacheRow>> GetAllInstancesAsync(CancellationToken ct)
+    {
+        await using var conn = await _CreateConnectionAsync().ConfigureAwait(false);
+        await using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT * FROM instance_cache";
+
+        await using var reader = await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false);
+        var list = new List<InstanceCacheRow>();
+        while (await reader.ReadAsync(ct).ConfigureAwait(false))
+        {
+            list.Add(_ReadInstanceRow(reader));
+        }
+        return list;
+    }
+
     #endregion
 
     #region component_cache
